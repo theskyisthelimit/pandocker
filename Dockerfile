@@ -35,6 +35,7 @@ RUN set -x && \
         texlive \
         texlive-lang-french \
         texlive-lang-german \
+        texlive-lang-european \
         texlive-luatex \
         texlive-pstricks \
         texlive-xetex \
@@ -44,8 +45,10 @@ RUN set -x && \
         # dia
         dia \
         # fonts
+        fonts-dejavu \
         fonts-lato \
         fonts-liberation \
+        fonts-noto \
         # build tools
         make \
         git \
@@ -102,29 +105,94 @@ ADD cache/ ./cache
 #
 # Install pandoc from upstream. Debian package is too old.
 #
-ARG PANDOC_VERSION=2.7.3
+# When incrementing this version, also increment
+# PANDOC_CROSSREF_VERSION below.
+ARG PANDOC_VERSION=2.9.1
 ADD fetch-pandoc.sh /usr/local/bin/
 RUN fetch-pandoc.sh ${PANDOC_VERSION} ./cache/pandoc.deb && \
     dpkg --install ./cache/pandoc.deb && \
     rm -f ./cache/pandoc.deb
 
+##
+## F I L T E R S
+##
+
 #
-# Pandoc filters
+# Python filters
 #
 ADD requirements.txt ./
 RUN pip3 --no-cache-dir install --find-links file://${PWD}/cache -r requirements.txt
 
+#
+# pandoc-crossref
+#
+# This version must correspond to the correct PANDOC_VERSION.
+# See https://github.com/lierdakil/pandoc-crossref/releases to find the latest
+# release corresponding to the desired pandoc version.
+ARG PANDOC_CROSSREF_VERSION=0.3.6.1a
+ADD fetch-pandoc-crossref.sh /usr/local/bin/
+RUN fetch-pandoc-crossref.sh ${PANDOC_VERSION} ${PANDOC_CROSSREF_VERSION} ./cache/pandoc-crossref.tar.gz && \
+    tar xf ./cache/pandoc-crossref.tar.gz && \
+    install pandoc-crossref /usr/local/bin/ && \
+    install -d /usr/local/man/man1 && \
+    install pandoc-crossref.1 /usr/local/man/man1/
 
+##
+## T E M P L A T E S
+##
+
+# kpsewhich -var-value=TEXMFLOCAL
+ARG TEXMFLOCAL=/usr/local/share/texmf
+
+# If docker is run with the `--user` option, the $HOME var
+# is empty when the user does not exist inside the container.
+# This causes several problems for pandoc and xelatex/pdftex.
+# We solve the issue by putting the pandoc templates and the
+# latex packages in shared spaces (TEXMFLOCAL, TEMPLATES_DIR)
+# and creating symbolic links inside the `/root` home so that
+# the templates and packages can be accessed by root and a
+# non-existent `--user`
 #
-# eisvogel template
+# See Bug #110 : https://github.com/dalibo/pandocker/issues/110
 #
-ARG EISVOGEL_REPO=https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template
-ARG EISVOGEL_VERSION=v1.3.0
-ARG TEMPLATES_DIR=/root/.pandoc/templates
+
+# CTAM packages are installed in the system-wide latex tree
+# See `kpsewhich -var-value=TEXMFLOCAL`
+ENV TEXMFLOCAL=/usr/local/share/texmf
+
+# Templates are installed in '/.pandoc'.
+ARG TEMPLATES_DIR=/.pandoc/templates
+
 RUN mkdir -p ${TEMPLATES_DIR} && \
-    wget ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex -O ${TEMPLATES_DIR}/eisvogel.latex
+    mkdir /.texlive2016 && \
+    # Links for the non-existent
+    ln -s ${TEXMFLOCAL} /texmf && \
+    # Links for the root user
+    ln -s /.pandoc /root/.pandoc && \
+    ln -s ${TEXMFLOCAL} /root/texmf && \
+    ln -s /.texlive2016 /root/.texlive2016
+
+# eisvogel template
+ARG EISVOGEL_REPO=https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template
+ARG EISVOGEL_VERSION=v1.4.0
+RUN wget ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex -O ${TEMPLATES_DIR}/eisvogel.latex
 RUN tlmgr init-usertree && \
     tlmgr install ly1 inconsolata sourcesanspro sourcecodepro mweights noto
+
+# letter template
+ARG LETTER_REPO=https://raw.githubusercontent.com/aaronwolen/pandoc-letter
+ARG LETTER_VERSION=master
+RUN wget ${LETTER_REPO}/${LETTER_VERSION}/template-letter.tex -O ${TEMPLATES_DIR}/letter.latex
+
+# leaflet template
+ARG LEAFLET_REPO=https://gitlab.com/daamien/pandoc-leaflet-template/raw
+ARG LEAFLET_VERSION=1.0
+RUN wget ${LEAFLET_REPO}/${LEAFLET_VERSION}/leaflet.latex -O ${TEMPLATES_DIR}/leaflet.latex
+
+
+##
+## M I S C
+##
 
 #
 # emojis support for latex

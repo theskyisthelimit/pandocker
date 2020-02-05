@@ -1,10 +1,40 @@
 Changelog
 ===============================================================================
 
-19.11
+20.02
 -------------------------------------------------------------------------------
 
-<!-- git log 19.08..19.11 --oneline -->
+
+__Stack__
+
+* Debian 9 stretch
+* Pandoc 2.9
+* Eisvogel 1.3.0
+
+__Changes__
+
+<https://github.com/dalibo/pandocker/milestone/10>
+
+* Switch to Pandoc 2.9 (daamien)
+* Switch to Eisvogel 1.4 (daamien)
+* [filters] add pandoc-crossref (colindean)
+* [doc] using pipes to produce a pdf file (daamien)
+* [doc] the pandoc-citeproc is already installed (daamien)
+* [lang] add dutch and all european languages (DigitalTravelDuck)
+* [templates] add leaflet template (daamien)
+* [templates] add Letter Template (daamien)
+* [CI] use bats-core for testing (daamien)
+* [CI] remove useless submodules (daamien)
+* [CI] remove the fixtures folder (daamien)
+* [fonts] add deja-vu and noto (daamien)
+* [dev] the default branch is not called `latest`  (daamien)
+* [dev] the `master` branch is obsolete  (daamien)
+* [doc] using pipes to generate pdf files (daamien)
+* [doc] explaining the `docker run` options (daamien)
+
+
+19.11
+-------------------------------------------------------------------------------
 
 __Stack__
 * Debian 9 stretch
