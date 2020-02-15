@@ -208,6 +208,11 @@ teardown() {
           -o $OUT/$DIR/boxes.pdf
 }
 
+## 452: FontAwesome
+@test "452: Generate a PDF file containings fontawesome macros" {
+  DIR=fonts
+  $PANDOC $IN/$DIR/fontawesome.md --pdf-engine=xelatex -o $OUT/$DIR/fontawesome.pdf
+}
 
 ##
 ## 5xx: Filters

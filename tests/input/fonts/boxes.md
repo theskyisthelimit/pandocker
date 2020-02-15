@@ -8,9 +8,8 @@ lang: "en"
 colorlinks: true
 header-includes:
 - |
-  ```{=latex}
-  \usepackage{awesomebox}
-  ```
+  \usepackage{awesomebox-compat}
+
 pandoc-latex-environment:
   noteblock: [note]
   tipblock: [tip]
