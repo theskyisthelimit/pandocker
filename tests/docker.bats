@@ -194,11 +194,18 @@ teardown() {
           -o $OUT/$DIR/emojis.pdf
 }
 
-# Bug #75 : https://github.com/dalibo/pandocker/issues/75
+## Bug #75 : https://github.com/dalibo/pandocker/issues/75
 @test "442: Generate an HTML file containing weird emojis" {
   DIR=emojis
   $PANDOC $IN/$DIR/magicienletter.md -o $OUT/$DIR/magicienletter.html
   $DIFF $OUT/$DIR/magicienletter.html $EXP/$DIR/magicienletter.html
+}
+
+## 45x: FontAwesome
+@test "451: Generate a PDF file containings awesomeboxes with fontawesome" {
+  DIR=fonts
+  $PANDOC $IN/$DIR/boxes.md --pdf-engine=xelatex --filter pandoc-latex-environment --listings \
+          -o $OUT/$DIR/boxes.pdf
 }
 
 
