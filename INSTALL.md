@@ -21,7 +21,7 @@ will need to [upgrade](UPGRADE.md) manually your setup on a regular basis.
 as described above.
 
 
-### 1. Environment
+### 1. Environment Test
 
 Install Debian Stretch
 
